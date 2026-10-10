@@ -1,0 +1,38 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Setup Java JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Download & Extract Project
+      run: |
+        curl -L -o project.zip "https://github.com/${{ github.repository }}/raw/main/CustomBrowserApp_Project.zip" || true
+        if [ -f project.zip ]; then
+          unzip -o project.zip -d ./
+        fi
+
+    - name: Make Gradlew Executable
+      run: chmod +x gradlew || true
+
+    - name: Build APK with Gradle
+      run: ./gradlew assembleDebug || gradle assembleDebug
+
+    - name: Upload Built APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: Custom-Browser-App
+        path: app/build/outputs/apk/debug/app-debug.apk
